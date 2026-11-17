@@ -9,7 +9,13 @@ const limits = JSON.parse(fs.readFileSync(path.join(ROOT, "shared/limits.json"),
 const s = makeServer({ RATE_LIMIT: "1000" }); // one scout posts many readings a second in these tests
 before(() => s.start());
 after(() => s.cleanup());
-const scout = (values, source, ms = 0) => s.post("/ingest", s.R("surface-01", "surface", "surface", values, Date.now() + ms, source ? { source } : {}));
+// Every scout reading is stamped later than the one before it. The API picks the latest reading by its `time`,
+// so two posts inside the same few milliseconds must not be left to the speed of the machine running the tests.
+let clock = Date.now();
+const scout = (values, source, ms = 0) => {
+  clock = Math.max(clock + 1, Date.now() + ms);
+  return s.post("/ingest", s.R("surface-01", "surface", "surface", values, clock, source ? { source } : {}));
+};
 const SAFE = { co2_ppm: 430, o2_pct: 20.9, temp_c: 18, pm25_ugm3: 12, radiation_usv_h: 0.2 };
 
 test("no readings, then some readings: 'not enough data' until the contract's three readings are all there, never a guess", async () => {
