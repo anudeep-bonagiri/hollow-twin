@@ -1969,7 +1969,7 @@ function onAlert(a, fresh) {
   api.alerts.unshift(a); if (api.alerts.length > 60) api.alerts.pop();
   const v = a.values, n = BYID[a.block];
   if (v.family && v.cause) { // a family check-in was delivered
-    const c = { id: a.id, from: (String(v.text).match(/^(\S+) is/) || [])[1] || 'A watch', block: a.block, to: v.to || [], family: v.family, hops: v.hops || 0, via: v.via || [], sent: v.sent, delivered: a.time, source: a.source, verified: v.cause_verified === true };
+    const c = { id: a.id, from: String(v.cause).replace(/-\d+$/, '') || (String(v.text).match(/^(\S+) is/) || [])[1] || 'A watch', status: v.status || 'ok', block: a.block, to: v.to || [], family: v.family, hops: v.hops || 0, via: v.via || [], sent: v.sent, delivered: a.time, source: a.source, verified: v.cause_verified === true };
     api.checkins.unshift(c); if (api.checkins.length > 12) api.checkins.pop();
     if (fresh) announceCheckin(c);
   } else if (fresh) log(v.level === 'danger' ? 'crit' : v.level === 'warn' ? 'warn' : 'info', nice(v.text) + '.', n ? [n] : null, a.source === 'live' ? 'API, from a device' : 'API, simulated');
@@ -1977,17 +1977,30 @@ function onAlert(a, fresh) {
   api.dirty = true;
 }
 
+// What a family check-in says. Its status is "ok", "help", "msg:<text>" or "morse:<text>" (the lane 2 watch).
+function checkinWords(c) {
+  const s = c.status || 'ok';
+  if (s === 'ok') return { says: 'is OK', level: 'ok', label: "I'm OK" };
+  if (s === 'help') return { says: 'needs help', level: 'crit', label: 'Help!' };
+  if (s.startsWith('morse:')) return { says: `sent “${s.slice(6)}” in Morse`, level: 'info', label: s.slice(6) };
+  if (s.startsWith('msg:')) return { says: `says “${s.slice(4)}”`, level: 'info', label: s.slice(4) };
+  return { says: `checked in: ${s}`, level: 'info', label: s };
+}
+
 function announceCheckin(c) {
   const src = BYID[c.block], dstId = c.to.map(w => api.deviceBlock[w]).find(Boolean), dst = dstId && BYID[dstId];
   const late = c.sent ? Math.round((Date.parse(c.delivered) - Date.parse(c.sent)) / 1000) : 0;
   const route = c.hops ? ` It crossed ${c.hops} relay${c.hops > 1 ? 's' : ''} (${c.via.map(r => blockName(r.replace(/^relay-/, ''))).join(' to ')})${late > 5 ? ` and arrived ${late} s after it was sent` : ''}.` : '';
-  log('ok', `${c.from} in ${blockName(c.block)} is OK. Delivered to ${c.to.join(', ') || 'the family group'}${dst ? ' in ' + dst.name : ''}.${route}`, [src, dst].filter(Boolean), c.source === 'live' ? (c.verified ? 'Device, verified' : 'Device, unverified') : 'API, simulated');
-  if (src && dst && src !== dst) courier(src, dst, "I'm OK"); else if (src) flash(src);
+  const w = checkinWords(c);
+  log(w.level, `${c.from} in ${blockName(c.block)} ${w.says}. Delivered to ${c.to.join(', ') || 'the family group'}${dst ? ' in ' + dst.name : ''}.${route}`, [src, dst].filter(Boolean), c.source === 'live' ? (c.verified ? 'Device, verified' : 'Device, unverified') : 'API, simulated');
+  if (src && dst && src !== dst) courier(src, dst, w.label.length > 18 ? w.label.slice(0, 17) + '…' : w.label); else if (src) flash(src);
 }
 
 // the strip that shows messages arriving, so the path from a device to this screen is visible
 function feedPush(m) {
-  const line = m.kind === 'alert' ? `Alert: ${nice(m.values.text)}` : `${KINDS[m.kind] || m.kind} from ${blockName(m.block)} (${m.device})${m.hops ? `, over ${m.hops} relay${m.hops > 1 ? 's' : ''}` : ''}`;
+  const fam = m.kind === 'alert' && m.values.family && m.values.cause;
+  const line = fam ? `Family: ${String(m.values.cause).replace(/-\d+$/, '')} ${checkinWords({ status: m.values.status }).says}`
+    : m.kind === 'alert' ? `Alert: ${nice(m.values.text)}` : `${KINDS[m.kind] || m.kind} from ${blockName(m.block)} (${m.device})${m.hops ? `, over ${m.hops} relay${m.hops > 1 ? 's' : ''}` : ''}`;
   api.feed.unshift({ line, src: m.kind === 'alert' ? 'API' : prov(m), at: Date.now(), live: m.source === 'live' });
   if (api.feed.length > 5) api.feed.length = 5;
   renderFeed();
@@ -2102,7 +2115,7 @@ function apiOverview() {
     for (const c of api.checkins.slice(0, 4)) {
       const dstId = c.to.map(w => api.deviceBlock[w]).find(Boolean);
       const late = c.sent ? Math.round((Date.parse(c.delivered) - Date.parse(c.sent)) / 1000) : 0;
-      out.push(`<div class="ck" data-bid="${c.block}"><b>${c.from} in ${blockName(c.block)} is OK.</b> Delivered to ${c.to.join(', ') || 'the family group'}${dstId ? ' in ' + blockName(dstId) : ''}${c.hops ? `, over ${c.hops} relay${c.hops > 1 ? 's' : ''}` : ''}${late > 5 ? `, ${late} s after it was sent` : ''}. <span class="note">${c.source === 'live' ? (c.verified ? 'Device, verified' : 'Device, unverified') : 'API, simulated'}</span></div>`);
+      out.push(`<div class="ck" data-bid="${c.block}"><b>${c.from} in ${blockName(c.block)} ${checkinWords(c).says}.</b> Delivered to ${c.to.join(', ') || 'the family group'}${dstId ? ' in ' + blockName(dstId) : ''}${c.hops ? `, over ${c.hops} relay${c.hops > 1 ? 's' : ''}` : ''}${late > 5 ? `, ${late} s after it was sent` : ''}. <span class="note">${c.source === 'live' ? (c.verified ? 'Device, verified' : 'Device, unverified') : 'API, simulated'}</span></div>`);
     }
   }
   const al = api.alerts.filter(a => !a.values.family).slice(0, 6);

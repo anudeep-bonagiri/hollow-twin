@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05070a">
+<title>Hollow watch</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --bg: #05070a; --face: #0d1117; --ring: #1f2937; --text: #e6edf3; --dim: #8b949e; --line: #30363d;
+    --ok: #2ea043; --ok-hi: #3fb950; --warn: #d29922; --danger: #f85149; --danger-lo: #da3633; --info: #58a6ff;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text);
+    font: 15px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: center; gap: 28px;
+    padding: calc(20px + env(safe-area-inset-top)) calc(14px + env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) calc(14px + env(safe-area-inset-left)); }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  .col { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+
+  /* ---------- the watch ---------- */
+  .face { position: relative; width: min(88vw, 360px); aspect-ratio: 1; border-radius: 50%;
+    background: radial-gradient(circle at 50% 35%, #161b22, var(--face) 70%);
+    border: 10px solid var(--ring); box-shadow: 0 0 0 2px #000, 0 20px 60px rgba(0,0,0,.6);
+    overflow: hidden; user-select: none; -webkit-user-select: none; }
+  .face.cut { border-color: #3a1d1d; }
+  .top { position: absolute; top: 9%; left: 0; right: 0; text-align: center; }
+  .clock { font-size: 22px; font-weight: 600; letter-spacing: .5px; }
+  .where { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+  .radio-badge { display: none; font-size: 10px; color: #ffb4ad; letter-spacing: .5px; }
+  .face.cut .radio-badge { display: block; }
+  .face.cut .where { display: none; }
+  .screen { position: absolute; top: 24%; bottom: 17%; left: 9%; right: 9%; display: none;
+    flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .screen.on { display: flex; }
+  .tabs { position: absolute; bottom: 6%; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; }
+  .tabs button { width: 40px; height: 30px; border-radius: 999px; border: 1px solid var(--line); background: #0d1117; font-size: 14px; color: var(--dim); }
+  .tabs button.on { background: #1f2937; color: var(--text); border-color: #484f58; }
+  .tabs button .pip { display: none; position: relative; top: -8px; left: 1px; width: 6px; height: 6px; border-radius: 50%; background: var(--danger); }
+  .tabs button.ping .pip { display: inline-block; }
+
+  /* home */
+  .okbtn { width: 46%; aspect-ratio: 1; border-radius: 50%; border: 0; color: #fff;
+    background: radial-gradient(circle at 50% 35%, var(--ok-hi), var(--ok)); font-size: 24px; font-weight: 800;
+    box-shadow: 0 0 0 6px rgba(46,160,67,.18), 0 8px 24px rgba(46,160,67,.35); transition: transform .08s; }
+  .okbtn:active, .helpbtn:active, .chip:active, .key:active { transform: scale(.94); }
+  .okbtn.busy { background: radial-gradient(circle at 50% 35%, #e3b341, var(--warn)); box-shadow: 0 0 0 6px rgba(210,153,34,.2); }
+  .helpbtn { margin-top: 10px; padding: 6px 16px; border-radius: 999px; border: 1px solid var(--danger-lo);
+    background: rgba(248,81,73,.12); color: #ffb4ad; font-size: 12px; font-weight: 700; letter-spacing: 1px; }
+  .helpbtn.arm { background: var(--danger-lo); color: #fff; }
+  .status { margin-top: 8px; min-height: 2.5em; font-size: 12px; color: var(--dim); max-width: 92%; }
+  .status b { color: var(--text); }
+
+  /* family */
+  .fam { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+  .fam .row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: #0d1117; border: 1px solid #21262d; text-align: left; }
+  .fam .row b { font-size: 13px; flex: 1; }
+  .fam .row span { font-size: 11px; color: var(--dim); }
+  .s { width: 10px; height: 10px; border-radius: 50%; flex: none; background: #484f58; }
+  .s.safe { background: var(--ok-hi); box-shadow: 0 0 8px rgba(63,185,80,.6); }
+  .s.help { background: var(--danger); box-shadow: 0 0 8px rgba(248,81,73,.7); animation: blink 1s infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  .row.help { border-color: var(--danger-lo); }
+
+  /* talk */
+  .chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; }
+  .chip { padding: 8px 4px; border-radius: 10px; border: 1px solid var(--line); background: #0d1117; font-size: 12px; font-weight: 600; }
+  .chip.morse { grid-column: span 2; border-color: #1f6feb; color: #cfe6ff; background: rgba(31,111,235,.12); }
+  .talk-hint { font-size: 10px; color: var(--dim); margin-bottom: 6px; letter-spacing: .5px; text-transform: uppercase; }
+
+  /* morse */
+  .mtext { min-height: 1.3em; font-size: 17px; font-weight: 700; letter-spacing: 1px; max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .mcode { min-height: 1.2em; font-size: 16px; color: var(--info); letter-spacing: 3px; font-family: ui-monospace, Menlo, monospace; }
+  .key { margin: 6px 0; width: 38%; aspect-ratio: 1; border-radius: 50%; border: 2px solid #1f6feb;
+    background: radial-gradient(circle at 50% 35%, #1f2a3a, #0d1520); color: #cfe6ff; font-size: 11px; line-height: 1.3; touch-action: none; }
+  .key.down { background: #1f6feb; color: #fff; }
+  .mrow { display: flex; gap: 6px; }
+  .mrow button { padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: #0d1117; font-size: 12px; }
+  .mrow .send { background: #1f6feb; border-color: #1f6feb; color: #fff; font-weight: 700; }
+
+  /* something arriving covers the face until tapped */
+  .alert { position: absolute; inset: 0; border-radius: 50%; display: none; flex-direction: column; align-items: center;
+    justify-content: center; padding: 16%; text-align: center; background: rgba(5,7,10,.95); z-index: 5; }
+  .alert.show { display: flex; }
+  .alert .lvl { font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
+  .alert .txt { font-size: 19px; font-weight: 700; }
+  .alert .sub { font-size: 12px; color: var(--dim); margin-top: 6px; }
+  .alert .code { font-size: 15px; color: var(--info); letter-spacing: 3px; margin-top: 6px; font-family: ui-monospace, Menlo, monospace; }
+  .alert .tap { font-size: 10px; color: #6e7681; margin-top: 12px; }
+  .alert.info .lvl { color: var(--info); } .alert.safe .lvl { color: var(--ok-hi); }
+  .alert.warn .lvl { color: var(--warn); } .alert.danger .lvl { color: var(--danger); }
+  .alert.danger { box-shadow: inset 0 0 0 4px var(--danger); } .alert.warn { box-shadow: inset 0 0 0 4px var(--warn); }
+  .alert.safe { box-shadow: inset 0 0 0 4px var(--ok); } .alert.info { box-shadow: inset 0 0 0 4px #1f6feb; }
+
+  /* under the watch: network and radio route */
+  .net { font-size: 12px; color: var(--dim); text-align: center; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--dim); vertical-align: 1px; }
+  .dot.up { background: var(--ok-hi); } .dot.down { background: var(--danger); } .dot.none { background: var(--warn); }
+  .route { display: none; align-items: center; gap: 4px; font-size: 11px; color: var(--dim); flex-wrap: wrap; justify-content: center; }
+  .route.show { display: flex; }
+  .route .n { padding: 4px 8px; border: 1px solid var(--line); border-radius: 999px; white-space: nowrap; transition: all .25s; }
+  .route .n.lit { border-color: var(--info); color: #cfe6ff; background: rgba(88,166,255,.12); box-shadow: 0 0 10px rgba(88,166,255,.35); }
+  .route .w { color: #484f58; transition: color .25s; } .route .w.lit { color: var(--info); }
+  .bar { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  .bar button { background: #161b22; border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; font-size: 13px; }
+  .bar button.on { background: #3a1d1d; border-color: var(--danger); color: #ffb4ad; }
+
+  /* ---------- the family app on the phone ---------- */
+  .app { width: min(92vw, 380px); background: #0d1117; border: 1px solid var(--line); border-radius: 22px; padding: 16px; }
+  .app h1 { font-size: 16px; margin: 0; }
+  .app .sub { font-size: 12px; color: var(--dim); margin: 2px 0 12px; }
+  .app h2 { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin: 14px 0 6px; }
+  .member { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 12px; background: #010409; border: 1px solid #21262d; margin-bottom: 6px; }
+  .member .who { flex: 1; } .member .who b { display: block; font-size: 14px; } .member .who span { font-size: 12px; color: var(--dim); }
+  .member .tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: #21262d; color: var(--dim); }
+  .member .tag.safe { background: rgba(46,160,67,.15); color: var(--ok-hi); }
+  .member .tag.help { background: rgba(248,81,73,.15); color: #ffb4ad; }
+  .member.help { border-color: var(--danger-lo); }
+  .log { display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto; }
+  .msg { font-size: 13px; padding: 7px 10px; border-radius: 12px; background: #161b22; max-width: 88%; }
+  .msg.me { align-self: flex-end; background: #0f2a4a; }
+  .msg .meta { display: block; font-size: 10px; color: var(--dim); margin-bottom: 2px; }
+  .msg .code { display: block; font-family: ui-monospace, Menlo, monospace; color: var(--info); letter-spacing: 2px; font-size: 11px; }
+  .msg.help { background: rgba(248,81,73,.12); border: 1px solid var(--danger-lo); }
+  .msg.safe { background: rgba(46,160,67,.10); }
+  .empty { font-size: 12px; color: #6e7681; }
+  .note { font-size: 11px; color: #6e7681; margin-top: 12px; }
+
+  dialog { background: #0d1117; color: var(--text); border: 1px solid var(--line); border-radius: 12px; width: min(92vw, 420px); padding: 18px; }
+  dialog::backdrop { background: rgba(0,0,0,.6); }
+  dialog h2 { margin: 0 0 12px; font-size: 16px; }
+  dialog label { display: block; font-size: 12px; color: var(--dim); margin: 10px 0 4px; }
+  dialog input, dialog select { width: 100%; padding: 8px 10px; background: #010409; color: var(--text); border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+  dialog .row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; }
+  dialog .row button { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: #21262d; }
+  dialog .row button.primary { background: var(--ok); border-color: var(--ok); }
+  dialog small { color: #6e7681; font-size: 11px; }
+</style>
+</head>
+<body>
+
+<div class="col">
+  <div class="face" id="face">
+    <div class="top">
+      <div class="clock" id="clock">--:--</div>
+      <div class="where" id="where">—</div>
+      <div class="radio-badge">📡 RADIO ONLY · NETWORK CUT</div>
+    </div>
+
+    <!-- home: tell the family you're safe, or that you need help -->
+    <div class="screen on" id="s-home">
+      <button class="okbtn" id="ok" aria-label="Tell my family I'm OK">I'M OK</button>
+      <button class="helpbtn" id="help">NEED HELP</button>
+      <div class="status" id="status">Tap to tell your family you're safe.</div>
+    </div>
+
+    <!-- family: who is safe -->
+    <div class="screen" id="s-family"><div class="fam" id="fam-watch"></div></div>
+
+    <!-- talk: walkie-talkie presets -->
+    <div class="screen" id="s-talk">
+      <div class="talk-hint">Send to family by radio</div>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <!-- morse: tap a dot, hold a dash -->
+    <div class="screen" id="s-morse">
+      <div class="mtext" id="m-text">&nbsp;</div>
+      <div class="mcode" id="m-code">&nbsp;</div>
+      <button class="key" id="key">TAP ·<br>HOLD −</button>
+      <div class="mrow">
+        <button id="m-back">←</button><button id="m-del">⌫</button><button id="m-space">␣</button><button class="send" id="m-send">SEND</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button data-s="home" class="on" aria-label="Home">●</button>
+      <button data-s="family" aria-label="Family">👪<span class="pip"></span></button>
+      <button data-s="talk" aria-label="Talk">📻</button>
+    </div>
+
+    <div class="alert" id="alert" role="alert">
+      <div class="lvl" id="a-lvl"></div>
+      <div class="txt" id="a-txt"></div>
+      <div class="code" id="a-code"></div>
+      <div class="sub" id="a-sub"></div>
+      <div class="tap">tap to dismiss</div>
+    </div>
+  </div>
+
+  <div class="net" id="net"><span class="dot"></span>…</div>
+  <div class="route" id="route" aria-label="Radio route"></div>
+  <div class="bar">
+    <button id="cut" title="Simulates the Directorate switching the network off. Messages then go by radio, relay to relay.">Cut network</button>
+    <button id="cfg">Settings</button>
+  </div>
+</div>
+
+<!-- the family app the watch pairs with -->
+<div class="app">
+  <h1>Hollow Family</h1>
+  <div class="sub" id="app-sub">—</div>
+  <h2>Who's safe</h2>
+  <div id="fam-app"></div>
+  <h2>Radio messages</h2>
+  <div class="log" id="log"><div class="empty">Nothing yet. Check-ins, help calls and radio messages from your family land here.</div></div>
+  <div class="note">Hollow Twin watch and family app, prototyped on a phone. Every message is a contract <code>checkin</code> (CONTRACT.md), sent to the team's API, or kept in this browser in local mode. When the network is cut, the radio relays are simulated and the screen says so.</div>
+</div>
+
+<dialog id="dlg">
+  <form method="dialog">
+    <h2>Watch settings</h2>
+    <label for="f-api">API address</label>
+    <input id="f-api" placeholder="http://localhost:8787" autocomplete="off" inputmode="url">
+    <small>Leave empty to use the watch on its own: messages stay in this browser (local mode).</small>
+    <label for="f-key">API key (only if the API was started with INGEST_KEY)</label>
+    <input id="f-key" autocomplete="off">
+    <label for="f-device">This watch</label>
+    <input id="f-device" placeholder="watch-0071" autocomplete="off">
+    <label for="f-name">My name</label>
+    <input id="f-name" placeholder="Maya" autocomplete="off">
+    <label for="f-block">Where I am</label>
+    <select id="f-block"></select>
+    <label for="f-family">Family group</label>
+    <input id="f-family" placeholder="fam-0071" autocomplete="off">
+    <label for="f-to">Family (watch=name, comma separated)</label>
+    <input id="f-to" placeholder="watch-0011=Mom, watch-0012=Dad" autocomplete="off">
+    <label><input type="checkbox" id="f-bots" style="width:auto;margin-right:6px">Without an API, family answers on their own</label>
+    <small>Turn this off to play both sides yourself: open this page in a second tab as Mom.</small>
+    <div class="row">
+      <button value="cancel">Cancel</button>
+      <button value="save" class="primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+// Hollow Twin, lane 2: the family watch, prototyped as a web page, and the family app it pairs with.
+//
+// Everything a watch says to its family is a contract `checkin` to POST /ingest (CONTRACT.md section 2).
+// The API passes a check-in's `status` to every watch in the family group, so the status carries the message:
+//   "ok"            I'm safe
+//   "help"          I need help (a `button: help` goes out too, for the rescue queue)
+//   "msg:<text>"    a walkie-talkie preset
+//   "morse:<text>"  a message keyed in Morse code (the receiver hears it played back)
+// Family news comes back from GET /inbox and GET /family. With the network cut, every message hops by
+// radio through two relays (simulated) and arrives with hops and via saying so (CONTRACT.md section 5).
+
+// Block ids from contract/blocks.json.
+const BLOCKS = ['l0-rail-wells','l0-rail-steps','l0-drift-yard','l0-rivet-gallery','l1-winch-gallery','l1-ash-hollow','l1-rail-bend','l1-ember-heading','l1-rivet-heading','l1-bore-steps','l2-damp-bend','l2-chalk-gallery','l2-slag-wells','l2-tipple-junction','l2-ember-junction','l2-tallow-wells','l2-rail-hollow','l3-ember-yard','l3-flint-row','l3-sump-steps','l3-damp-steps','l3-flint-heading','l3-bore-face','l3-pylon-steps','l4-bore-heading','l4-tallow-gallery','l4-pitch-row','l4-flint-gallery','l4-coke-yard','l4-gantry-court','l4-rivet-face','l4-lantern-face','l5-ash-court','l5-cinder-court','l5-pylon-heading','l5-ash-yard','l5-winch-heading','l5-coke-wells','l5-seam-row','l5-sump-bend','l5-rail-face','l6-seam-wells','l6-damp-court','l6-pitch-face','l6-flint-face','l6-slag-face','l6-rail-row','l6-lantern-heading','l6-ember-gallery','l6-chalk-bend','l7-pylon-yard','l7-rivet-row','l7-ember-wells','l7-flint-yard','l7-drift-heading','l7-tipple-court','l7-chalk-cut','l7-ash-wells','l7-pitch-gallery','l7-gantry-yard','l8-bore-bend','l8-gantry-bend','l8-winch-wells','l8-canary-bend','l8-lamp-cut','l8-sump-row','l8-slag-yard','l8-canary-row','l8-rail-junction','l8-drift-hollow'];
+
+// Defaults match the network-cut beat in api/tools/scenario.js: a resident on L7 Chalk Cut, family on L1.
+// Open a second copy as Mom with ?device=watch-0011&name=Mom&block=l1-winch-gallery&to=watch-0071=Maya,watch-0012=Dad
+const DEFAULTS = { api: '', key: '', device: 'watch-0071', name: 'Maya', block: 'l7-chalk-cut', family: 'fam-0071', to: 'watch-0011=Mom, watch-0012=Dad', bots: true };
+// The deployed API, once lane 1 has one: set it here and in twin/index.html (DEFAULT_API). Empty = local mode.
+const TWIN_API = '';
+const PRESETS = ['On my way', 'Stay where you are', 'Meet at the lift', 'Need water'];
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('hollow.watch.' + k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('hollow.watch.' + k, JSON.stringify(v)); } catch (e) { /* storage blocked: memory only */ } },
+};
+
+// Settings from storage, then from the link (?api=…&device=…&name=…&block=…&family=…&to=…).
+// Each watch on the same browser keeps its own storage, so two tabs can be two family members.
+// #mom opens the second family member, for playing both sides in two tabs (works where links drop ?query).
+const PROFILES = { mom: { device: 'watch-0011', name: 'Mom', block: 'l1-winch-gallery', to: 'watch-0071=Maya, watch-0012=Dad' } };
+const profile = PROFILES[location.hash.slice(1)] || null;
+const q = new URLSearchParams(location.search);
+const slot = (profile && profile.device) || q.get('device') || store.get('lastDevice', DEFAULTS.device);
+const cfg = { ...DEFAULTS, ...(profile || {}), ...store.get('cfg.' + slot, {}) };
+// Served next to the twin (hollow-twin.vercel.app/watch), a new watch uses the API the twin is connected to.
+if (!q.has('api') && !store.get('cfg.' + slot, null)) { try { cfg.api = localStorage.getItem('hollow.api') || TWIN_API; } catch (e) { cfg.api = TWIN_API; } }
+for (const k of Object.keys(DEFAULTS)) if (q.has(k)) cfg[k] = k === 'bots' ? q.get(k) !== 'off' : q.get(k);
+const S = k => k + '.' + cfg.device;          // per-watch storage key
+store.set('cfg.' + cfg.device, cfg); if (!profile) store.set('lastDevice', cfg.device);
+
+let queue = store.get(S('queue'), []);        // messages not yet accepted by the API
+let cut = store.get('cut', false);            // the demo "network cut" switch
+let reachable = null;                         // last result of talking to the API
+let lastSeq = store.get(S('seq'), 0);
+let caughtUp = lastSeq > 0;                   // first contact replays old news silently
+let flushing = false, routeDone = false;
+let log = store.get(S('log'), []);            // the app's message history
+let news = store.get(S('news'), {});          // device -> latest {status, time, block, hops}
+
+const api = () => (cfg.api || '').trim().replace(/\/+$/, '');
+const pretty = b => { const [lvl, ...rest] = b.split('-'); return lvl.toUpperCase() + ' · ' + rest.map(w => w[0].toUpperCase() + w.slice(1)).join(' '); };
+const shortName = b => b.split('-').slice(1).map(w => w[0].toUpperCase() + w.slice(1)).join(' ');
+const hhmm = iso => new Date(iso).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const ago = iso => { const m = Math.round((Date.now() - Date.parse(iso)) / 60000); return m < 1 ? 'just now' : m < 60 ? m + ' min ago' : hhmm(iso); };
+const hops = n => `${n} hop${n === 1 ? '' : 's'}`;
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const wait = ms => new Promise(r => setTimeout(r, ms));
+function members() {   // [{device, name}] from "watch-0011=Mom, watch-0012=Dad"
+  return cfg.to.split(',').map(s => s.trim()).filter(Boolean).map(s => { const [device, name] = s.split('='); return { device: device.trim(), name: (name || device).trim() }; });
+}
+const nameOf = d => d === cfg.device ? 'You' : (members().find(m => m.device === d) || {}).name || d;
+
+function nextId() {   // unique per watch; starts from the clock so a cleared phone never reuses an id
+  let n = store.get(S('counter'), 0);
+  n = Math.max(n + 1, Math.floor(Date.now() / 1000) % 1000000);
+  store.set(S('counter'), n);
+  return `${cfg.device}-${String(n).padStart(6, '0')}`;
+}
+// ---------- local mode: no API set, so this browser keeps the messages ----------
+// It answers the same four calls the real API does (POST /ingest, GET /inbox, POST and GET /family),
+// keeps them in localStorage so two tabs of this page can be two family members, and, unless turned
+// off in Settings, lets the rest of the family answer on their own.
+const LOCAL_KEY = 'localdb';
+const freshDb = () => ({ seq: 0, rows: [], fams: {} });
+let memDb = freshDb();
+const loadDb = () => store.get(LOCAL_KEY, null) || memDb;
+const saveDb = db => { memDb = db; store.set(LOCAL_KEY, db); };
+function familyOf(db, group) {
+  const set = new Set(db.fams[group] || []);
+  for (const r of db.rows) if (r.values && r.values.family === group && r.kind !== 'alert') set.add(r.device);
+  return [...set];
+}
+function localIngest(body) {
+  const db = loadDb(), list = Array.isArray(body) ? body : [body];
+  let accepted = 0, duplicates = 0;
+  for (const m of list.slice().sort((a, b) => Date.parse(a.time) - Date.parse(b.time))) {
+    if (db.rows.some(r => r.id === m.id)) { duplicates++; continue; }
+    db.rows.push({ ...m, seq: ++db.seq }); accepted++;
+    if (m.kind === 'checkin') {   // the same rule as the API: tell the `to` list and the family group
+      const v = m.values, fam = v.family;
+      const to = [...new Set([...(v.to || []), ...(fam ? familyOf(db, fam) : [])])].filter(d => d !== m.device);
+      if (to.length) db.rows.push({ id: `alert-${m.id}-0`, device: 'backend', block: m.block, time: new Date().toISOString(), kind: 'alert', seq: ++db.seq,
+        values: { level: 'info', text: `${m.device} checked in: ${v.status}`, cause: m.id, to, family: fam, status: v.status, sent: m.time, hops: m.hops, via: m.via } });
+    }
+  }
+  db.rows = db.rows.slice(-400);
+  saveDb(db);
+  return { accepted, duplicates, rejected: [], warnings: [] };
+}
+function localCall(method, path, body) {
+  const u = new URL(path, 'http://local'), q = u.searchParams, db = loadDb();
+  if (method === 'POST' && u.pathname === '/ingest') return localIngest(body);
+  if (method === 'POST' && u.pathname === '/family') { db.fams[body.group] = body.devices; saveDb(db); return { ok: true }; }
+  if (u.pathname === '/inbox') { const d = q.get('device'), after = Number(q.get('after_seq')) || 0;
+    return db.rows.filter(r => r.kind === 'alert' && r.seq > after && (r.values.to || []).includes(d)); }
+  if (u.pathname === '/family') return familyOf(db, q.get('family')).map(d => {
+    const last = db.rows.filter(r => r.device === d && r.kind === 'checkin' && (r.values.status || 'ok') === 'ok').pop();
+    return { device: d, last_ok: last ? last.time : null, block: last ? last.block : null, hops: last ? last.hops : null };
+  });
+  return null;
+}
+// One way to talk to "the API", real or local: resolves to { ok, status, data }, throws when the network is down.
+async function call(method, path, body) {
+  if (!api()) return { ok: true, status: 200, data: localCall(method, path, body) };
+  const r = await fetch(api() + path, method === 'POST' ? { method, headers: headers(), body: JSON.stringify(body) } : {});
+  return { ok: r.ok, status: r.status, data: await r.json().catch(() => ({})) };
+}
+
+// The rest of the family, played by this page in local mode: they answer what you send.
+const BOT_BLOCKS = ['l1-winch-gallery', 'l4-coke-yard', 'l2-chalk-gallery', 'l3-flint-row'];
+function botReply(status) {
+  if (api() || !cfg.bots) return;
+  const fam = members(), t = parse(status).type;
+  const plan = t === 'help' ? [[0, 3000, 'msg:On my way'], [1, 7000, 'morse:OK']]
+    : t === 'safe' ? [[0, 2500, 'ok'], [1, 6000, 'ok']]
+    : [[0, 3500, t === 'morse' ? 'morse:OK' : 'msg:Got it. Stay safe']];
+  for (const [i, ms, st] of plan) {
+    const m = fam[i]; if (!m) continue;
+    setTimeout(() => {
+      const block = BOT_BLOCKS[i % BOT_BLOCKS.length];
+      const n = (loadDb().seq + 1) * 7 + i;
+      localIngest({ id: `${m.device}-${String(n).padStart(6, '0')}`, device: m.device, block, time: new Date().toISOString(), kind: 'checkin',
+        values: { status: st, family: cfg.family, to: [cfg.device] }, hops: cut ? 2 : 0, via: cut ? [`relay-${block}`, `relay-${neighbour(block)}`] : [], source: 'simulated' });
+      poll();
+    }, ms);
+  }
+}
+
+function headers() { const h = { 'Content-Type': 'application/json' }; if (cfg.key) h['x-api-key'] = cfg.key; return h; }
+
+// ---------- what a status means ----------
+function parse(status) {
+  if (!status || status === 'ok') return { type: 'safe', text: 'is safe' };
+  if (status === 'help') return { type: 'help', text: 'needs help' };
+  if (status.startsWith('morse:')) return { type: 'morse', text: status.slice(6) };
+  if (status.startsWith('msg:')) return { type: 'msg', text: status.slice(4) };
+  return { type: 'msg', text: status };
+}
+
+// ---------- Morse ----------
+const MORSE = { A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..', J: '.---', K: '-.-', L: '.-..', M: '--',
+  N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.', S: '...', T: '-', U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..',
+  0: '-----', 1: '.----', 2: '..---', 3: '...--', 4: '....-', 5: '.....', 6: '-....', 7: '--...', 8: '---..', 9: '----.' };
+const FROM_MORSE = Object.fromEntries(Object.entries(MORSE).map(([k, v]) => [v, k]));
+const toCode = t => t.toUpperCase().split('').map(c => c === ' ' ? '/' : MORSE[c] || '').filter(Boolean).join(' ');
+const showCode = c => c.replace(/\./g, '·').replace(/-/g, '−');
+
+let audio = null;
+function unlockAudio() { try { audio = audio || new (window.AudioContext || window.webkitAudioContext)(); if (audio.state === 'suspended') audio.resume(); } catch (e) {} }
+document.addEventListener('pointerdown', unlockAudio, { once: false });
+function beep(ms) {
+  if (!audio) return;
+  const o = audio.createOscillator(), g = audio.createGain(), t = audio.currentTime;
+  o.frequency.value = 640; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.25, t + 0.01);
+  g.gain.setValueAtTime(0.25, t + ms / 1000); g.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000 + 0.02);
+  o.connect(g).connect(audio.destination); o.start(t); o.stop(t + ms / 1000 + 0.05);
+}
+async function playMorse(text) {   // the code as sound and vibration, the way a radio would deliver it
+  const U = 90, buzz = [];
+  for (const sym of toCode(text)) {
+    if (sym === '.') { beep(U); buzz.push(U, U); await wait(U * 2); }
+    else if (sym === '-') { beep(U * 3); buzz.push(U * 3, U); await wait(U * 4); }
+    else { buzz.push(0, U * 2); await wait(U * 2); }
+  }
+  if (navigator.vibrate) navigator.vibrate(buzz.slice(0, 60));
+}
+
+// the key: tap for a dot, hold for a dash; a pause ends the letter
+let mText = '', mCode = '', keyDown = 0, letterTimer = null;
+function paintMorse() { $('m-text').innerHTML = mText ? esc(mText) : '&nbsp;'; $('m-code').innerHTML = mCode ? showCode(mCode) : '&nbsp;'; }
+function endLetter() { if (mCode) { mText += FROM_MORSE[mCode] || '?'; mCode = ''; paintMorse(); } }
+$('key').addEventListener('pointerdown', e => { e.preventDefault(); unlockAudio(); clearTimeout(letterTimer); keyDown = performance.now(); $('key').classList.add('down'); beepOn(); });
+const keyUp = e => {
+  if (!keyDown) return;
+  const held = performance.now() - keyDown; keyDown = 0; $('key').classList.remove('down'); beepOff();
+  mCode += held < 220 ? '.' : '-'; paintMorse();
+  if (navigator.vibrate) navigator.vibrate(held < 220 ? 30 : 90);
+  clearTimeout(letterTimer); letterTimer = setTimeout(endLetter, 650);
+};
+$('key').addEventListener('pointerup', keyUp); $('key').addEventListener('pointerleave', keyUp); $('key').addEventListener('pointercancel', keyUp);
+let tone = null;
+function beepOn() { if (!audio) return; tone = audio.createOscillator(); const g = audio.createGain(); g.gain.value = 0.2; tone.frequency.value = 640; tone.connect(g).connect(audio.destination); tone.start(); }
+function beepOff() { if (tone) { try { tone.stop(); } catch (e) {} tone = null; } }
+$('m-del').addEventListener('click', () => { clearTimeout(letterTimer); if (mCode) mCode = ''; else mText = mText.slice(0, -1); paintMorse(); });
+$('m-space').addEventListener('click', () => { endLetter(); if (mText && !mText.endsWith(' ')) mText += ' '; paintMorse(); });
+$('m-back').addEventListener('click', () => show('talk'));
+$('m-send').addEventListener('click', () => {
+  clearTimeout(letterTimer); endLetter();
+  const t = mText.trim(); if (!t) return;
+  send(`morse:${t}`); mText = ''; paintMorse(); show('home');
+});
+
+// ---------- sending ----------
+function message(status) {
+  return { id: nextId(), device: cfg.device, block: cfg.block, time: new Date().toISOString(), kind: 'checkin',
+    values: { status, family: cfg.family, to: members().map(m => m.device) }, hops: 0, via: [], source: 'live' };
+}
+function send(status) {
+  const out = [message(status)];
+  // a help call also goes to the rescue queue (GET /help), not only to the family
+  if (status === 'help') out.push({ ...message(status), id: nextId(), kind: 'button', values: { button: 'help', family: cfg.family } });
+  queue.push(...out); store.set(S('queue'), queue);
+  const p = parse(status);
+  addLog({ from: cfg.device, status, time: out[0].time, hops: 0 });
+  if (p.type !== 'msg' && p.type !== 'morse') news[cfg.device] = { status, time: out[0].time, block: cfg.block, hops: 0 };
+  store.set(S('news'), news);
+  routeDone = false;
+  if (navigator.vibrate) navigator.vibrate(40);
+  paint(); flush();
+}
+
+// the radio route around a cut: watch → this block's relay → the next block's relay, which still has a line out
+function neighbour(b) {
+  const i = BLOCKS.indexOf(b), lvl = b.split('-')[0], next = BLOCKS[i + 1], prev = BLOCKS[i - 1];
+  return next && next.startsWith(lvl + '-') ? next : prev && prev.startsWith(lvl + '-') ? prev : next || prev;
+}
+function drawRoute(lit = -1) {
+  const nodes = ['Watch', 'Relay · ' + shortName(cfg.block), 'Relay · ' + shortName(neighbour(cfg.block)), 'Uplink'];
+  $('route').innerHTML = nodes.map((n, i) => (i ? `<span class="w${i <= lit ? ' lit' : ''}">〰</span>` : '') + `<span class="n${i <= lit ? ' lit' : ''}">${n}</span>`).join('');
+}
+async function sendByRadio(msgs) {
+  const steps = [`📡 Radio → <b>${shortName(cfg.block)}</b> relay`, `📡 Radio → <b>${shortName(neighbour(cfg.block))}</b> relay`, `↑ ${shortName(neighbour(cfg.block))} still has a line out`];
+  show('home'); drawRoute(0);
+  for (let i = 0; i < steps.length; i++) { await wait(650); drawRoute(i + 1); say(steps[i]); }
+  for (const m of msgs) if (!m.via.length) { m.hops = 2; m.via = [`relay-${cfg.block}`, `relay-${neighbour(cfg.block)}`]; }
+  store.set(S('queue'), queue);
+}
+
+// post everything waiting as ONE request, oldest first, with original times (CONTRACT.md section 5)
+async function flush() {
+  if (flushing || !queue.length) return paint();
+  flushing = true;
+  const batch = queue.slice(), byRadio = cut;
+  try {
+    if (byRadio) await sendByRadio(batch);
+    const r = await call('POST', '/ingest', batch.length === 1 ? batch[0] : batch);
+    reachable = true;
+    if (r.status === 429) { setTimeout(flush, 1200); return; }
+    if (r.status === 401) { say('<b>API key needed.</b> Add it in Settings.'); return; }
+    const body = r.data || {};
+    if (r.ok || r.status === 422) {
+      const rejected = new Map((body.rejected || []).map(x => [x.id, x.problems]));
+      queue = queue.filter(m => !batch.includes(m)); store.set(S('queue'), queue);
+      const first = parse(batch[0].values.status || 'help');
+      const what = first.type === 'safe' ? "you're safe" : first.type === 'help' ? 'you need help' : `“${esc(first.text)}”`;
+      if (rejected.size) say('<b>Not accepted:</b> ' + esc([...rejected.values()][0].join('; ')));
+      else if (byRadio) { routeDone = true; drawRoute(3); say(`<b>Sent by radio ✓</b><br>Family knows ${what}.`); }
+      else say(`<b>Sent ✓</b> ${hhmm(batch[0].time)}<br>Family knows ${what}.`);
+      registerFamily();
+      for (const m of batch) if (m.kind === 'checkin') botReply(m.values.status);
+    } else say(`<b>API error ${r.status}.</b> Holding and retrying.`);
+  } catch (e) {
+    reachable = false;   // a real outage: keep holding
+  } finally { flushing = false; paint(); }
+}
+
+async function registerFamily() {   // so GET /family lists every watch in the group, once per setup
+  const key = S(`fam.${cfg.family}.${cfg.to}`);
+  if (!cfg.family || store.get(key, false)) return;
+  try {
+    const r = await call('POST', '/family', { group: cfg.family, devices: [cfg.device, ...members().map(m => m.device)] });
+    if (r.ok) store.set(key, true);
+  } catch (e) {}
+}
+
+// ---------- receiving ----------
+function addLog(e) {
+  if (log.some(x => x.time === e.time && x.from === e.from && x.status === e.status)) return false;
+  log.push(e); log.sort((a, b) => Date.parse(a.time) - Date.parse(b.time)); log = log.slice(-60);
+  store.set(S('log'), log); return true;
+}
+
+async function poll() {
+  try {
+    const r = await call('GET', `/inbox?device=${encodeURIComponent(cfg.device)}&after_seq=${lastSeq}`);
+    reachable = r.ok; if (!r.ok) return;
+    const list = r.data || [];
+    const quiet = !caughtUp; caughtUp = true;
+    for (const a of list) {
+      lastSeq = Math.max(lastSeq, a.seq || 0);
+      const v = a.values || {};
+      // message ids are <device>-<counter> and a relay's counter can contain dashes: match the contract's device pattern
+      const from = (String(v.cause || '').match(/^watch-\d{4}/) || [])[0] || (v.cause || '').replace(/-\d+$/, '');
+      if (from === cfg.device) continue;                       // the echo of our own message
+      if (v.family) {                                          // a family member checked in or called
+        const e = { from, status: v.status || 'ok', time: v.sent || a.time, block: a.block, hops: v.hops || 0 };
+        const fresh = addLog(e);
+        const p = parse(e.status);
+        if (p.type === 'safe' || p.type === 'help') { const n = news[from]; if (!n || Date.parse(e.time) >= Date.parse(n.time)) news[from] = e; }
+        if (fresh && !quiet) arrive(e);
+      } else if (!quiet && v.text) {                          // warnings for this block, help on its way
+        showAlert(v.level || 'info', v.level === 'danger' ? 'Danger' : v.level === 'warn' ? 'Warning' : 'Message', v.text, '', '');
+      }
+    }
+    store.set(S('seq'), lastSeq); store.set(S('news'), news);
+  } catch (e) { reachable = false; }
+  finally { paint(); }
+}
+
+async function pollFamily() {   // who has checked in "ok", from the API's own record
+  if (!cfg.family) return;
+  try {
+    const r = await call('GET', `/family?family=${encodeURIComponent(cfg.family)}`);
+    if (!r.ok || !Array.isArray(r.data)) return;
+    for (const m of r.data) {
+      if (!m.last_ok || m.device === cfg.device) continue;
+      const n = news[m.device];
+      if (!n || Date.parse(m.last_ok) > Date.parse(n.time)) news[m.device] = { status: 'ok', time: m.last_ok, block: m.block, hops: m.hops || 0 };
+    }
+    store.set(S('news'), news); paint();
+  } catch (e) {}
+}
+
+function arrive(e) {   // something from family covers the face
+  const p = parse(e.status), who = nameOf(e.from);
+  const via = e.hops ? `by radio · ${hops(e.hops)}` : '';
+  const where = e.block ? pretty(e.block) : '';
+  if (p.type === 'safe') showAlert('safe', 'Family', `${who} is safe`, '', [where, via].filter(Boolean).join(' · '));
+  else if (p.type === 'help') { showAlert('danger', 'Family needs help', `${who} needs help`, '', [where, via].filter(Boolean).join(' · ')); document.querySelector('[data-s="family"]').classList.add('ping'); }
+  else if (p.type === 'morse') { showAlert('info', `Morse from ${who}`, p.text, showCode(toCode(p.text)), via); playMorse(p.text); return; }
+  else showAlert('info', `Radio · ${who}`, p.text, '', via);
+}
+function showAlert(cls, lvl, txt, code, sub) {
+  $('alert').className = 'alert show ' + cls;
+  $('a-lvl').textContent = lvl; $('a-txt').textContent = txt; $('a-code').textContent = code || ''; $('a-sub').textContent = sub || '';
+  if (navigator.vibrate) navigator.vibrate(cls === 'danger' ? [300, 120, 300, 120, 300] : [200, 100, 200]);
+  if (cls !== 'info') { beep(120); setTimeout(() => beep(120), 220); }
+}
+$('alert').addEventListener('click', () => $('alert').classList.remove('show'));
+
+// ---------- screens ----------
+function show(name) {
+  for (const s of ['home', 'family', 'talk', 'morse']) $('s-' + s).classList.toggle('on', s === name);
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.s === (name === 'morse' ? 'talk' : name)));
+  if (name === 'family') document.querySelector('[data-s="family"]').classList.remove('ping');
+}
+document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => show(b.dataset.s)));
+for (const t of PRESETS) { const c = document.createElement('button'); c.className = 'chip'; c.textContent = t; c.onclick = () => { send(`msg:${t}`); show('home'); }; $('chips').appendChild(c); }
+{ const c = document.createElement('button'); c.className = 'chip morse'; c.textContent = '·−  Morse key'; c.onclick = () => show('morse'); $('chips').appendChild(c); }
+
+let statusHtml = null;
+function say(html) { statusHtml = html; paint(); }
+
+function familyRows() {
+  return [{ device: cfg.device, name: 'You' }, ...members()].map(m => {
+    const n = news[m.device];
+    const st = !n ? 'none' : parse(n.status).type === 'help' ? 'help' : 'safe';
+    const label = st === 'help' ? 'Needs help' : st === 'safe' ? 'Safe' : 'No word';
+    const detail = n ? [n.block ? pretty(n.block) : '', ago(n.time), n.hops ? `radio ${hops(n.hops)}` : ''].filter(Boolean).join(' · ') : 'not heard from yet';
+    return { ...m, st, label, detail };
+  });
+}
+
+function paint() {
+  $('clock').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  $('where').textContent = pretty(cfg.block) + ' · ' + cfg.name;
+  $('face').classList.toggle('cut', cut);
+  $('cut').classList.toggle('on', cut);
+  $('cut').textContent = cut ? 'Restore network' : 'Cut network';
+  $('ok').classList.toggle('busy', flushing || queue.length > 0);
+
+  const net = $('net');
+  if (!api() && cut) net.innerHTML = '<span class="dot down"></span>Network cut · sending by radio (relays simulated) · local mode';
+  else if (!api()) net.innerHTML = '<span class="dot none"></span>Local mode · no API' + (cfg.bots !== false ? ' · family replies simulated' : '');
+  else if (cut) net.innerHTML = '<span class="dot down"></span>Network cut · sending by radio (relays simulated)';
+  else if (reachable === false) net.innerHTML = '<span class="dot down"></span>Can\'t reach the API · holding';
+  else net.innerHTML = `<span class="dot up"></span>Connected · ${esc(api().replace(/^https?:\/\//, ''))}`;
+  $('route').classList.toggle('show', cut);
+  if (cut && !flushing && !routeDone) drawRoute(-1);
+
+  if (queue.length && !flushing && reachable === false) $('status').innerHTML = `<b>Holding ${queue.length}</b><br>Sends when it can reach the network.`;
+  else if (statusHtml) $('status').innerHTML = statusHtml;
+
+  const rows = familyRows();
+  $('fam-watch').innerHTML = rows.map(r => `<div class="row ${r.st}"><i class="s ${r.st}"></i><b>${esc(r.name)}</b><span>${r.label}</span></div>`).join('');
+  $('fam-app').innerHTML = rows.map(r => `<div class="member ${r.st}"><i class="s ${r.st}"></i><div class="who"><b>${esc(r.name)}</b><span>${esc(r.detail)}</span></div><span class="tag ${r.st}">${r.label}</span></div>`).join('');
+  $('app-sub').textContent = `${cfg.name} · ${cfg.device} · family ${cfg.family}`;
+
+  if (log.length) {
+    $('log').innerHTML = log.slice().reverse().map(e => {
+      const p = parse(e.status), me = e.from === cfg.device;
+      const body = p.type === 'safe' ? `✅ ${me ? "I'm safe" : 'Safe'}` : p.type === 'help' ? `🆘 ${me ? 'I need help' : 'Needs help'}` : esc(p.text);
+      const code = p.type === 'morse' ? `<span class="code">${showCode(toCode(p.text))}</span>` : '';
+      const meta = `${esc(nameOf(e.from))} · ${hhmm(e.time)}${p.type === 'morse' ? ' · Morse' : ''}${e.hops ? ` · radio, ${hops(e.hops)}` : ''}`;
+      return `<div class="msg ${me ? 'me' : ''} ${p.type}"><span class="meta">${meta}</span>${body}${code}</div>`;
+    }).join('');
+  }
+}
+
+// ---------- controls ----------
+$('ok').addEventListener('click', () => send('ok'));
+let helpArmed = null;
+$('help').addEventListener('click', () => {   // two taps, so a bump doesn't call for help
+  if (helpArmed) { clearTimeout(helpArmed); helpArmed = null; $('help').classList.remove('arm'); $('help').textContent = 'NEED HELP'; send('help'); return; }
+  $('help').classList.add('arm'); $('help').textContent = 'TAP AGAIN TO SEND';
+  helpArmed = setTimeout(() => { helpArmed = null; $('help').classList.remove('arm'); $('help').textContent = 'NEED HELP'; }, 3000);
+});
+$('cut').addEventListener('click', () => {
+  cut = !cut; store.set('cut', cut); routeDone = false;
+  statusHtml = cut ? 'Network is down.<br>Radio still works.' : null;
+  paint(); flush();
+});
+
+const sel = $('f-block');
+for (const b of BLOCKS) { const o = document.createElement('option'); o.value = b; o.textContent = pretty(b); sel.appendChild(o); }
+$('cfg').addEventListener('click', () => {
+  $('f-api').value = cfg.api; $('f-key').value = cfg.key; $('f-device').value = cfg.device; $('f-name').value = cfg.name;
+  sel.value = cfg.block; $('f-family').value = cfg.family; $('f-to').value = cfg.to; $('f-bots').checked = cfg.bots !== false;
+  $('dlg').showModal();
+});
+$('dlg').addEventListener('close', () => {
+  if ($('dlg').returnValue !== 'save') return;
+  const u = new URL(location.href);
+  const vals = { api: $('f-api').value.trim(), key: $('f-key').value.trim(), device: $('f-device').value.trim() || DEFAULTS.device,
+    name: $('f-name').value.trim() || DEFAULTS.name, block: sel.value, family: $('f-family').value.trim(), to: $('f-to').value.trim(), bots: $('f-bots').checked };
+  store.set('cfg.' + vals.device, { ...store.get('cfg.' + vals.device, {}), ...vals }); store.set('lastDevice', vals.device);
+  for (const k of Object.keys(DEFAULTS)) u.searchParams.delete(k);
+  if (location.search) { u.searchParams.set('device', vals.device); u.hash = ''; location.href = u.toString(); }
+  else { history.replaceState(null, '', location.pathname); location.reload(); }   // reload as that watch, with its own history
+});
+
+window.addEventListener('online', () => { flush(); poll(); });
+setInterval(() => { flush(); poll(); pollFamily(); }, 2500);
+setInterval(paint, 15000);
+paint(); flush(); poll(); pollFamily();
+</script>
+</body>
+</html>

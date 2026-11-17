@@ -30,3 +30,14 @@ python3 -m http.server 8080        # then open http://localhost:8080
 - [ ] Set `DEFAULT_API` once the API is hosted.
 - [ ] Help requests: the count shows; a ranked list with an assign button does not.
 - [ ] Phone layout: usable, not tuned.
+
+## The family watch at `/watch`
+
+`watch/index.html` is the lane 2 family watch, deployed with the twin so a phone can open https://hollow-twin.vercel.app/watch. It is a copy of [`firmware/watch/web/index.html`](../firmware/watch/web/index.html), which is the one to edit; copy it over before deploying:
+
+```sh
+cp firmware/watch/web/index.html twin/watch/index.html
+```
+
+A new watch uses the API this browser's twin is connected to (`hollow.api`), or `TWIN_API` in the watch file. Once the API is hosted, set `TWIN_API` there as well as `DEFAULT_API` here.
+
