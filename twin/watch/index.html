@@ -527,7 +527,8 @@ async function poll() {
     for (const a of list) {
       lastSeq = Math.max(lastSeq, a.seq || 0);
       const v = a.values || {};
-      const from = (v.cause || '').replace(/-\d+$/, '');
+      // message ids are <device>-<counter> and a relay's counter can contain dashes: match the contract's device pattern
+      const from = (String(v.cause || '').match(/^watch-\d{4}/) || [])[0] || (v.cause || '').replace(/-\d+$/, '');
       if (from === cfg.device) continue;                       // the echo of our own message
       if (v.family) {                                          // a family member checked in or called
         const e = { from, status: v.status || 'ok', time: v.sent || a.time, block: a.block, hops: v.hops || 0 };
