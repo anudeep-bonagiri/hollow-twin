@@ -223,6 +223,7 @@ All optional to use. Details and examples are in [`api/README.md`](api/README.md
 | `POST /official`, `GET /truth` | The Directorate's published case count against the residents' own count. |
 | `GET /surface`, `GET /surface/history` | The surface verdict in full, and its public record. |
 | `GET /firstwave` | Who goes up first: healthy volunteers, never sole caregivers, needed skills first. |
+| `POST /help/<message id>/delivered` | Body `{ "by": "rover-01", "note": "med kit" }` (`note` optional, at most 200 characters). The responder arrived: the request's `status` becomes `delivered` (with `delivered_by`, `delivered_at`, `note`), it leaves the open and assigned lists, and the resident's watch gets an alert "rover-01 reached watch-0042 in l6-flint-face: med kit". Works on an open request too. `409` if already delivered; a delivered request cannot be reassigned. `GET /help?status=delivered` lists them. |
 | `GET /limits` | Every threshold the API uses, with its source. |
 | `GET /forgeries` | The public log of forged readings (wrong `sig`): refused, never stored as readings. See 4.1. |
 | `GET /feed`, `GET /queue`, `POST /dispatch` | Earlier names kept working: `/feed` is `/live` with unnamed events, `/queue` is `/help`, `/dispatch` assigns the top request. |
@@ -297,3 +298,4 @@ Additions, except the rows marked **Removed**, which say what was taken out and 
 | 2026-11-17 | 1.1, 4.1, 4.2 | Forged readings are visible: a message with a wrong `sig` is still rejected and never stored as a reading, and the rejection goes out on `GET /live` as `event: forgery` and into the public log `GET /forgeries`, rate-limited like `POST /ingest`. |
 | 2026-11-17 | 1.2, 1.3 | Sensor errors: an impossible value, a jump or drift is stored with `plausible: false`, `sensor_error` and `sensor_flags`, raises no alert, and is left out of all logic; `GET /status` counts them as `readings.implausible`. |
 | 2026-11-17 | 2.2 | `checkin.status` may also be `help`, `msg:<text>` or `morse:<text>` (the lane 2 family watch). The API already passed any status through; this writes the values down. |
+| 2026-11-17 | 4.2 | `POST /help/<message id>/delivered` closes a help request when the responder arrives and tells the resident; `GET /help` accepts `?status=delivered`. Proposed on branch `lane1-help-delivered` for lane 1 to review. |

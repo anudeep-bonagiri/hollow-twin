@@ -18,6 +18,7 @@
 // GET  /blocks/<id>/latest  the latest message of each kind for one block
 // GET  /help              open help requests, highest priority first (?status=assigned|all, &to=rover-01)
 // POST /help/<id>/assign  { to: "rover-01" }  marks a help request as assigned and tells the resident
+// POST /help/<id>/delivered { by: "rover-01", note: "med kit" }  the responder arrived: closes it and tells the resident
 // GET  /broadcast         for the public page: latest surface readings against their limits, the verdict text, the
 //                         newest photo, and a link to the history
 //
@@ -113,7 +114,9 @@ function load() {
 }
 function applyMeta(m) {
   if (m.dispatched) assigned.set(m.dispatched, { to: null, time: null }); // written before /help/<id>/assign existed
-  if (m.assigned) assigned.set(m.assigned.id, { to: m.assigned.to, time: m.assigned.time });
+  if (m.assigned) assigned.set(m.assigned.id, { ...(assigned.get(m.assigned.id) || {}), to: m.assigned.to, time: m.assigned.time });
+  if (m.delivered) { const a = assigned.get(m.delivered.id) || { to: m.delivered.by, time: m.delivered.time };
+    assigned.set(m.delivered.id, { ...a, delivered_by: m.delivered.by, delivered_at: m.delivered.time, note: m.delivered.note || null }); }
   if (m.family) families[m.family.group] = m.family.devices;
   if (m.official) official[m.official.block] = m.official.count;
 }
@@ -401,6 +404,16 @@ function assign(item, to) {
   return { ...item, status: "assigned", assigned_to: to, assigned_at: time };
 }
 
+// The responder arrived: closes the request, remembers it across restarts, and tells the resident what was brought.
+function delivered(item, by, note) {
+  const time = new Date().toISOString();
+  saveMeta({ delivered: { id: item.id, by, time, note } });
+  store(alert(readings.find((r) => r.id === item.id) || { id: item.id, block: item.block }, "info",
+    `${by} reached ${item.device} in ${item.block}${note ? `: ${note}` : ""}`,
+    { to: [item.device], responder: by, why: `${by} arrived for the help request ${item.id}${note ? ` with ${note}` : ""}` }, "delivered"));
+  return { ...item, status: "delivered", assigned_to: item.assigned_to || by, delivered_by: by, delivered_at: time, note: note || null };
+}
+
 load();
 const server = http.createServer((req, res) => guard(res, () => route(req, res)));
 function route(req, res) {
@@ -515,7 +528,7 @@ function route(req, res) {
   // ?status=assigned or ?status=all also shows requests somebody was sent to; &to=rover-01 narrows to one responder.
   if (p === "/help" || p === "/queue") {
     const status = q.status || "open";
-    if (!["open", "assigned", "all"].includes(status)) return send(res, 400, { error: "status must be open, assigned or all" });
+    if (!["open", "assigned", "delivered", "all"].includes(status)) return send(res, 400, { error: "status must be open, assigned, delivered or all" });
     return send(res, 200, L.queue(usable, assigned, Date.now(), status).filter((x) => !q.to || x.assigned_to === q.to));
   }
   // CONTRACT.md section 4: POST /help/<message id>/assign with body { "to": "rover-01" }
@@ -526,8 +539,22 @@ function route(req, res) {
     const id = decodeURIComponent(help[1]);
     const item = L.queue(usable, assigned, Date.now(), "all").find((x) => x.id === id);
     if (!item) return send(res, 404, { error: `no help request with message id "${id}" (see GET /help)` });
+    if (item.status === "delivered") return send(res, 409, { error: `already delivered by ${item.delivered_by}`, assigned: item });
     if (item.status === "assigned") return send(res, 409, { error: `already assigned${item.assigned_to ? ` to ${item.assigned_to}` : ""}`, assigned: item });
     send(res, 200, { assigned: assign(item, b.to) });
+  });
+  // POST /help/<message id>/delivered with body { "by": "rover-01", "note": "med kit" }: the responder arrived.
+  // Works on an open request too (the responder went without being assigned), never twice.
+  const done = /^\/help\/([^/]+)\/delivered$/.exec(p);
+  if (req.method === "POST" && done) return readBody(req, res, (e, b) => {
+    if (e || !b || typeof b !== "object") return send(res, 400, { error: e || "need a JSON object" });
+    if (typeof b.by !== "string" || !b.by) return send(res, 400, { error: 'body must be { "by": "<who arrived, for example rover-01>", "note": "<optional: what they brought>" }' });
+    if (b.note !== undefined && (typeof b.note !== "string" || b.note.length > 200)) return send(res, 400, { error: "note must be a string of at most 200 characters" });
+    const id = decodeURIComponent(done[1]);
+    const item = L.queue(usable, assigned, Date.now(), "all").find((x) => x.id === id);
+    if (!item) return send(res, 404, { error: `no help request with message id "${id}" (see GET /help)` });
+    if (item.status === "delivered") return send(res, 409, { error: `already delivered by ${item.delivered_by}`, delivered: item });
+    send(res, 200, { delivered: delivered(item, b.by, b.note) });
   });
   // The original way: send a responder to the top request (among equal scores, the one nearest the responder's level).
   if (req.method === "POST" && p === "/dispatch") return readBody(req, res, (e, b) => {
