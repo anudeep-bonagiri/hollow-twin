@@ -30,11 +30,19 @@ Real: the twin, the API (ingest, live stream, forecast, allocation, alerts, chec
 
 ## Links
 
-- Live: https://hollow-twin.vercel.app
-- Code: https://github.com/anudeep-bonagiri/hollow-twin (private until we know the platform's rule; make it public before submitting if a repo is required)
-- Video: to add
+- Video: to add (YouTube, unlisted; also put it in README.md where it says VIDEO_LINK)
+- Live: https://hollow-twin.vercel.app (press Play the 75-second story)
+- The family watch on a phone: https://hollow-twin.vercel.app/watch/
+- The watch in 3D: https://hollow-twin.vercel.app/watch/device/
+- AR, the watch on your wrist and the rover in your room: https://hollow-twin.vercel.app/ar/
+- Code: https://github.com/anudeep-bonagiri/hollow-twin (public)
+- Thumbnail or cover image, if the form asks for one: docs/img/hollow-twin-thumbnail.jpg
 
-## Video script: six beats, about two minutes
+## Video script
+
+**The current script is [`VIDEO.md`](VIDEO.md)**: eight beats in two minutes, written for online judging, opening on the real Arduino and Pi in one uncut take. The earlier six-beat version is kept below for reference.
+
+### Earlier version: six beats, about two minutes
 
 Record at 1440 x 900 or larger. Run the API locally (or use the hosted one) and open the twin with `?api=<API address>&intro=0`. The guided story (`?story=1`) plays beats 1 to 3 by itself with the captions on screen; turn the captions into narration instead of reading them.
 

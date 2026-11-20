@@ -1,0 +1,33 @@
+<!doctype html><html><head><meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Anton&family=Archivo+Black&family=IBM+Plex+Sans:wght@500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<!-- Source of docs/img/end-card.jpg. Open in Chrome at 1600 x 900 and take a screenshot at 2x. Original art. -->
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 1600px; height: 900px; overflow: hidden; background: #1d1e1f; }
+.sheet { position: absolute; left: 110px; top: 70px; width: 1380px; height: 760px; background: #F7F5EF; transform: rotate(-.6deg); box-shadow: 0 30px 70px rgba(0,0,0,.6); overflow: hidden; }
+.sheet::before { content: ""; position: absolute; inset: 0; filter: url(#xerox); opacity: .2; mix-blend-mode: multiply; background: #777; }
+.stripe { position: absolute; left: 0; right: 0; height: 46px; background: repeating-linear-gradient(-45deg, #141210 0 22px, #F2B705 22px 44px); }
+.top { top: 0; } .bot { bottom: 0; }
+h1 { position: absolute; left: 80px; top: 120px; font-family: 'Archivo Black'; font-size: 176px; line-height: .88; color: #141210; letter-spacing: -3px; }
+h1 span { color: #C8102E; }
+.tag { position: absolute; left: 86px; top: 466px; font-family: 'IBM Plex Sans'; font-weight: 600; font-size: 52px; color: #111; }
+.tag u { text-decoration: none; background: linear-gradient(transparent 62%, rgba(200,16,46,.35) 62%); }
+.link { position: absolute; left: 86px; top: 560px; font: 38px 'IBM Plex Mono'; color: #141210; background: #F2B705; padding: 8px 18px; border: 3px solid #141210; }
+.team { position: absolute; right: 80px; top: 150px; width: 420px; font: 24px/1.9 'IBM Plex Mono'; color: #141210; text-align: right; }
+.team b { display: block; font-family: 'Archivo Black'; font-size: 22px; letter-spacing: 3px; color: #C8102E; margin-bottom: 6px; }
+.event { position: absolute; right: 80px; top: 600px; font: 22px 'IBM Plex Mono'; letter-spacing: 3px; color: #444; }
+.stamp { position: absolute; right: 120px; top: 420px; transform: rotate(-9deg); font-family: 'Archivo Black'; font-size: 46px; color: #B00C24; border: 7px solid #B00C24; padding: 2px 18px; filter: url(#stamp); letter-spacing: 3px; }
+</style></head><body>
+<svg width="0" height="0" style="position:absolute">
+ <filter id="xerox"><feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="2" seed="2"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncR type="discrete" tableValues="0 1 1 1"/><feFuncG type="discrete" tableValues="0 1 1 1"/><feFuncB type="discrete" tableValues="0 1 1 1"/></feComponentTransfer></filter>
+ <filter id="stamp" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".06" numOctaves="3" seed="12" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.1 1.85" result="m"/><feComposite in="SourceGraphic" in2="m" operator="in"/></filter>
+</svg>
+<div class="sheet">
+  <div class="stripe top"></div>
+  <h1>HOLLOW<br><span>TWIN</span></h1>
+  <div class="tag">We <u>count ourselves</u>.</div>
+  <div class="link">hollow-twin.vercel.app</div>
+  <div class="team"><b>BUILT BY</b>Anudeep Bonagiri<br>Sandeep Madhavarapu<br>Akshaya Pabbisetty<br>Fundamental333</div>
+  <div class="stamp">RESIDENTS' ISSUE</div>
+  <div class="event">PATRIOT HACKFEST 2026 · LIFE UNDERGROUND</div>
+  <div class="stripe bot"></div>
+</div></body></html>

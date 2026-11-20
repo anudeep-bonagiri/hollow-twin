@@ -136,6 +136,7 @@
   .scout-chips a.closed { color: var(--alarm); border-color: var(--alarm); }
   a.hlink { font-size: 12px; padding: 4px 10px; border: 1px solid var(--line-2); border-radius: 2px; background: var(--well); color: var(--ink); text-decoration: none; }
   a.hlink:hover { border-color: var(--sel); }
+  a.hlink-ar { background: #F2B705; border-color: #1F2326; font-weight: 600; }
   .actions { display: grid; gap: 4px; }
   .actions button { text-align: left; }
   .actions button:disabled { opacity: .5; cursor: default; }
@@ -210,6 +211,8 @@
   <header>
     <div class="brand">Hollow Twin<span>Sector 7, Old Kanawha workings</span></div>
     <a class="hlink" id="h-scout" href="scout/" target="hollow-scout" title="The tunnel scout rover: its CAD design, parts list and a mission down a tunnel. Design only, not built.">Scout rover</a>
+    <a class="hlink" href="watch/device/" target="hollow-watch" title="The family watch: its CAD design, with the real watch software running on its screen. Press I'M OK, cut the network, simulate a fall.">Family watch</a>
+    <a class="hlink hlink-ar" href="ar/" target="hollow-ar" title="Try the watch on your wrist with your phone's camera, or put the scout rover in your room at real size.">Try it in AR</a>
     <a class="hlink" href="broadcast/" target="hollow-broadcast" title="What the surface scouts measured, against published safety limits. Anyone can read it.">Surface broadcast</a>
     <div class="hstat">Clock <b id="h-clock">--</b></div>
     <div class="hstat">Geothermal <b id="h-plant">--</b></div>
@@ -1945,7 +1948,8 @@ addEventListener('keydown', e => {
 // With an API address set, the twin stops being a closed simulation: real messages override the simulated values
 // block by block, the API's power allocation and battery forecast replace the twin's own, and every number says
 // where it came from. With no API it runs on its built-in simulation and says so.
-const DEFAULT_API = ''; // the deployed API address, once lane 1 has one
+const DEFAULT_API = ''; // left empty on purpose: the story's numbers come from the simulation, and API data would change them.
+// The live view is one link away: ?api=https://hollow-twin-api.azurewebsites.net (reads need no key; the README links it).
 const slug = s => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 for (const n of NBHDS) { n.bid = `${LEVELS[n.level].code.toLowerCase()}-${slug(n.name)}`; n.api = {}; n.ov = null; }
 const BYID = Object.fromEntries(NBHDS.map(n => [n.bid, n]));
