@@ -6,6 +6,8 @@ Patriot HackFest Fall 2026, Life Underground track.
 
 **Try it: https://hollow-twin.vercel.app** and press **Play the 75-second story**.
 
+**Watch the video: https://youtu.be/hhaYTApHOzI**
+
 ![Under the Directorate's rule, 12 deep blocks are dark by hour 30](docs/img/directorate-rule.jpg)
 
 ## The problem we picked
@@ -18,7 +20,7 @@ Five problems from the track, because they are one event seen from five sides: a
 | 2. The Directorate decides who keeps the lights, and the deep levels always lose | Replaces "upper levels first" with a rule anyone can check: every block's air, pumps and medical load first, then the rest per person |
 | 7. The Directorate can shut the network down whenever it wants | Relay boxes in each block store messages and pass them block to block, to the first relay that still has a line out, or upload the backlog when the network returns. Each message carries the route it took |
 | 8. Families split across levels cannot tell if each other are OK | One "I'm OK" press travels over those relays to the family's watches, with the route it took |
-| 10. Medicine runs out first in the deep levels, far from any clinic | **The scout rover** rides the lift and drives the tunnels to a block that asked for help, with a med kit, a battery pack or water filters. It carries a relay box, so it also collects the messages a cut-off block is holding and brings them back into range. On the way it checks that the tunnel is passable (problem 5) |
+| 10. Medicine runs out first in the deep levels, far from any clinic | **The scout rover** rides the lift and drives the tunnels to a block that asked for help, with a med kit, a battery pack or water filters. It carries a relay box, so it also collects the messages a cut-off block is holding and brings them back into range. On the way it checks that the tunnel is passable |
 
 ## The scout rover
 
@@ -66,7 +68,7 @@ We would rather tell you than have you find out.
 | Part | Status |
 | --- | --- |
 | The 3D twin, the guided story, block cards, the power rules | Real and running at the link above |
-| The API: ingest, live stream, forecast, fair share, alerts, check-in delivery, replay after a network cut | Real code, with tests. Run it locally (below). It is not hosted yet, so the public link runs on the twin's built-in simulation |
+| The API: ingest, live stream, forecast, fair share, alerts, check-in delivery, replay after a network cut | Real code with 138 passing tests, hosted on Render at https://hollow-twin-api.onrender.com, and read by the public twin by default. Open the twin with `?api=off` to see the built-in simulation alone; the story numbers quoted here (12 blocks, 8.5 million people) come from it |
 | Sensor readings, populations, the failure scenario | Simulated. The screen tags every reading as twin simulation, scripted data through the API, or a device |
 | The family watch on a phone | Real: a web page on a real phone, sending to the API. I'm OK, help (two taps), I feel sick, family status, walkie-talkie presets and Morse; it shows its block's power forecast and its help call from queued to delivered. Its relay hops during a cut are drawn, not radioed ([`firmware/watch/`](firmware/watch/)) |
 | One watch and one relay box | Real: an Arduino with I'm OK, help and I feel sick buttons and a buzzer, and a Raspberry Pi that signs its messages, holds them while the network is down and uploads them when it returns ([`docs/HARDWARE.md`](docs/HARDWARE.md)). The family member upstairs is scripted |
@@ -97,6 +99,6 @@ Built while exploring the track, and working, but not part of the claim above: a
 
 ## Team
 
-`anudeep-bonagiri`, `SandeepMadhavarapu`, `akshaya-pabbisetty`, `Fundamental333`. Built during the event, Nov 14 to 20, 2026.
+`anudeep-bonagiri`, `SandeepMadhavarapu`, `akshaya-pabbisetty`. Built during the event, Nov 14 to 20, 2026.
 
 How we work together: [`TEAM.md`](TEAM.md). The plan to the deadline: [`docs/PLAN.md`](docs/PLAN.md).
