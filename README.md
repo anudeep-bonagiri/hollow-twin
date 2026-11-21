@@ -1,79 +1,87 @@
 # Hollow Twin
 
-**When the power fails in the Hollow, the deep levels go dark first, and when the Directorate cuts the network, nobody can tell their family they are alive. Hollow Twin warns each block before it goes dark, shares the power that is left fairly, and gets "I'm OK" through anyway: over relay boxes in every block, and where even they cannot reach, on a rover that drives the tunnels carrying messages and supplies.**
+**When the power fails in the Hollow, the deep levels go dark first. When the Directorate cuts the network, nobody can tell their family they are alive. Hollow Twin warns every block before it goes dark, shares the power that is left by a rule anyone can check, and gets a family's "I'm OK" through anyway: over relay boxes in every block, and where even they cannot reach, on a rover that drives the tunnels.**
 
-Patriot HackFest Fall 2026, Life Underground track.
+Patriot HackFest Fall 2026 · Life Underground track · Problems 1, 2, 7, 8 and 10
 
-**Try it: https://hollow-twin.vercel.app** and press **Play the 75-second story**.
+**[Watch the video](https://youtu.be/hhaYTApHOzI)** · **[Open the live twin](https://hollow-twin.vercel.app)** · **[See the scout rover](https://hollow-twin.vercel.app/scout/)** · **[Try the family watch](https://hollow-twin.vercel.app/watch/)**
 
-**Watch the video: https://youtu.be/hhaYTApHOzI**
+![The Directorate's poster says every level is served equally. The residents stick FALSE on it, with the truth: when the power plant fails, their rule leaves 12 blocks in the dark; sharing the same power fairly leaves 0.](docs/img/hollow-twin-hero.jpg)
 
-![Under the Directorate's rule, 12 deep blocks are dark by hour 30](docs/img/directorate-rule.jpg)
+## The problem
 
-## The problem we picked
+Two billion people live underground in the Hollow, and the deeper you live, the worse it gets. The Directorate decides who keeps the lights, and it serves the upper levels first. In our scenario a geothermal unit fails: under the Directorate's rule, **12 deep blocks are dark by hour 30 and 8.5 million people have no air fans**. When the Directorate also shuts the network down, families on different levels have no way to tell each other they are safe, and the nearest clinic can be several levels away.
 
-Five problems from the track, because they are one event seen from five sides: a power failure in a place where the government controls the power, the network and the news.
+## What Hollow Twin does
 
 | Track problem | What Hollow Twin does about it |
 | --- | --- |
-| 1. Blackouts last for days and nobody knows when the next one hits | Forecasts every block's battery, hours ahead, and warns the blocks that will run dry before their lights go out. The warning reaches every watch in that block, and the watch shows its block's hours of power left |
-| 2. The Directorate decides who keeps the lights, and the deep levels always lose | Replaces "upper levels first" with a rule anyone can check: every block's air, pumps and medical load first, then the rest per person |
-| 7. The Directorate can shut the network down whenever it wants | Relay boxes in each block store messages and pass them block to block, to the first relay that still has a line out, or upload the backlog when the network returns. Each message carries the route it took |
-| 8. Families split across levels cannot tell if each other are OK | One "I'm OK" press travels over those relays to the family's watches, with the route it took |
-| 10. Medicine runs out first in the deep levels, far from any clinic | **The scout rover** rides the lift and drives the tunnels to a block that asked for help, with a med kit, a battery pack or water filters. It carries a relay box, so it also collects the messages a cut-off block is holding and brings them back into range. On the way it checks that the tunnel is passable |
+| **1.** Blackouts hit without warning | Forecasts every block's battery and warns a block about a day before it runs out, then again at 8 hours. The warning reaches every watch in the block |
+| **2.** The deep levels always lose the power | Replaces "upper levels first" with a rule anyone can check: every block keeps its air, pumps and clinic running, then the rest is shared per person. **Same supply, 12 dark blocks become 0** |
+| **7.** The Directorate can shut the network off | Relay boxes in every block store messages and pass them block to block until one gets a line out. Each message carries the route it took |
+| **8.** Families cannot tell if each other are OK | The family watch: one tap of **I'M OK** reaches the family over those relays. Families see who is safe, who needs help and who has not been heard from, and can talk in presets or Morse code |
+| **10.** Medicine runs out first in the deep levels | Help calls are ranked by the caller's oxygen and pulse with NEWS2, the early warning score hospitals use, so the sickest person goes first. **The scout rover** drives a med kit to blocks the relays cannot reach and carries their held messages back out |
+
+## Try it in two minutes
+
+| | |
+| --- | --- |
+| **The twin.** Press **Play the 75-second story**, then click any block to step inside | https://hollow-twin.vercel.app |
+| **The family watch.** Open it on your phone and tap **I'M OK** | https://hollow-twin.vercel.app/watch/ |
+| **The watch in 3D**, running the real watch software on its screen. Cut the network, or simulate a fall | https://hollow-twin.vercel.app/watch/device/ |
+| **AR.** Try the watch on your wrist, or put the rover in your room at real size | https://hollow-twin.vercel.app/ar/ |
+| **The scout rover.** Its CAD design pulled apart, its parts list, and a mission down a flooded tunnel | https://hollow-twin.vercel.app/scout/ |
+
+The watch pages open in demo mode, with the family's replies simulated, so they work for anyone. Sending to the live API needs the team's key.
 
 ## The scout rover
 
-Our most distinctive part: a six-wheel rocker-bogie rover, designed in CAD down to every part, joint and bolt-on sensor ([`robot/`](robot/)). It is the physical link when both the network and the tunnels fail.
+When both the network and the tunnels fail, someone has to go in. The scout rover is a six-wheel rocker-bogie, the same suspension idea as the Mars rovers, so all six wheels stay on rubble without springs ([`robot/`](robot/)).
 
-- **Carries supplies** to blocks that cannot reach a clinic or a depot.
-- **Carries communications:** it has the same relay box as every block, so it drives to where the signal is and brings held messages out.
-- **Scouts tunnels** before people use them, and reports open or closed in the same message format as every other device.
+- **Carries supplies:** a med kit, a battery pack or water filters, to a block that called for help.
+- **Carries messages:** it has the same relay box as every block, so it collects what a cut-off block is holding and brings it back into range.
+- **Checks tunnels** before people use them: it climbs rubble, folds its camera mast to pass under a fallen duct, and measures flood water with a probe. It reports open or closed in the same message format as every other device.
 
-In the twin, open any block and press **Send the rover**, or send it to a help request from the overview's help list. Connected to the API, the rover takes the request, and when it arrives the API closes the request and tells the resident's watch "rover-01 reached you" (on the Arduino it beeps). The full design (CAD model, parts list, a mission down a flooded tunnel) is at [hollow-twin.vercel.app/scout](https://hollow-twin.vercel.app/scout/). The rover is designed and simulated, not built.
+We did not have the time or the parts to build it this week, so we designed it completely: **57 parts and 15 joints, 11.9 kg, about $1,240 in parts**, every motor, sensor and battery a part you can buy today. The model is written in CadQuery and exports STEP (any CAD program), URDF (robot simulators) and STL for printing. Cut the aluminium frame, print the wheels and brackets, order the parts list, and it is buildable.
 
-In the story's scenario a geothermal unit fails. Under the Directorate's rule, 12 deep blocks are dark by hour 30 and 8.5 million people have no fans or scrubbers. With the same supply shared fairly, no block goes dark.
-
-## What you are looking at
-
-One sector of the Hollow in the year 2124, 37 years after the collapse: nine levels, 70 blocks, 32 million people, from the surface down to a geothermal plant 2,560 m underground.
-
-- **Play the story** for the pitch in about a minute.
-- **Click any block** (or search for one, such as Rivet Gallery) to step inside: its readings, its forecast, its history, and what you can do for it.
-- **Switch the power rule** between Directorate and Fair share and watch who goes dark.
-- **Cut the Directorate network** and watch the block relays take over.
+In the twin, open any block and press **Send the rover**. Connected to the API, the rover takes the help request, and when it arrives the API closes the request and tells the resident's watch "rover-01 reached you".
 
 ## How it works
 
 ```mermaid
 flowchart LR
-  W["Watch<br/>(an Arduino)"] -- "USB" --> R["Relay box<br/>(a Raspberry Pi)"]
-  S["Sensor node<br/>(not built)"] -.-> R
-  R -- "stores and forwards<br/>when the network is cut" --> A
-  X["Scenario scripts<br/>(scripted data)"] --> A["API<br/>ingest, forecast, fair share,<br/>alerts, check-ins"]
+  W["Family watch<br/>(phone, Arduino)"] --> R["Relay box<br/>(Raspberry Pi)"]
+  S["Sensor node<br/>(ESP32: water, air, flood)"] --> R
+  R -- "holds and forwards<br/>when the network is cut" --> R2["Next block's relay"]
+  R --> A["API on Render<br/>forecast · fair share · triage<br/>check-ins · signatures"]
+  R2 --> A
   A -- "live stream" --> T["3D twin"]
-  A -. "alerts back down" .-> R
+  A -- "alerts back down" --> W
 ```
 
-- **`api/`**: a Node API with no dependencies. It takes messages in one shared format ([`CONTRACT.md`](CONTRACT.md)), forecasts each block's battery, computes who gets power under each rule, raises alerts, delivers family check-ins, and streams everything out live. A backlog that arrives late after a network cut is stored in the order it was measured, with the route it travelled.
-- **`twin/`**: one HTML page. Connected to the API, it shows what the API knows, block by block, and lets the API decide the power allocation. On its own, it runs a built-in simulation of the same sector.
-- **Every alert cites its limit.** CO2, heat, flood depth and water limits come from published standards (Health Canada, OSHA, the US National Weather Service, WHO, US EPA). The battery warning levels (24 h and 8 h) are our own choice, and the screen says so.
+Every part speaks one message format, [`CONTRACT.md`](CONTRACT.md), so the team built in parallel without waiting on each other.
+
+- **The API** ([`api/`](api/)) is Node.js with no dependencies, hosted on Render: 25 endpoints and 138 passing tests. It forecasts each block's battery from its drain rate, allocates power under both rules, ranks help calls with NEWS2, delivers family check-ins and streams everything live. Messages that arrive late after a network cut are stored in the order they were measured, with the route they travelled.
+- **Nothing is taken on trust.** Every device signs its messages (HMAC-SHA256). A forged reading is refused and listed publicly at `/forgeries`. An impossible sensor reading is flagged as a fault instead of setting off a false alarm. All 29 safety limits cite a published source (OSHA, NIOSH, WHO, US EPA, Health Canada, the US National Weather Service, NEWS2); the battery warning levels are our own choice, and the screen says so.
+- **The twin** ([`twin/`](twin/)) is one three.js page with no build step: a cutaway of nine levels, 70 blocks and 32 million people. Every number on screen says where it came from: the built-in simulation, scripted data through the API, or a device.
+- **The edge:** a Raspberry Pi relay in Python ([`firmware/relay/`](firmware/relay/)) holds messages through a cut and hands them relay to relay; firmware for an Arduino watch ([`firmware/watch/`](firmware/watch/)) and an ESP32 sensor node ([`firmware/sensor/`](firmware/sensor/)).
+- **The hardware designs:** the watch (28 parts, 45 mm, about $64) and the rover, both modelled in CAD the same way.
 
 ![A check-in sent during a network cut arrives through the API and is drawn travelling to the family's block](docs/img/check-in-through-the-api.jpg)
 
-## Real or simulated?
+## What is real and what is designed
 
 We would rather tell you than have you find out.
 
 | Part | Status |
 | --- | --- |
-| The 3D twin, the guided story, block cards, the power rules | Real and running at the link above |
-| The API: ingest, live stream, forecast, fair share, alerts, check-in delivery, replay after a network cut | Real code with 138 passing tests, hosted on Render at https://hollow-twin-api.onrender.com, and read by the public twin by default. Open the twin with `?api=off` to see the built-in simulation alone; the story numbers quoted here (12 blocks, 8.5 million people) come from it |
-| Sensor readings, populations, the failure scenario | Simulated. The screen tags every reading as twin simulation, scripted data through the API, or a device |
-| The family watch on a phone | Real: a web page on a real phone, sending to the API. I'm OK, help (two taps), I feel sick, family status, walkie-talkie presets and Morse; it shows its block's power forecast and its help call from queued to delivered. Its relay hops during a cut are drawn, not radioed ([`firmware/watch/`](firmware/watch/)) |
-| One watch and one relay box | Real: an Arduino with I'm OK, help and I feel sick buttons and a buzzer, and a Raspberry Pi that signs its messages, holds them while the network is down and uploads them when it returns ([`docs/HARDWARE.md`](docs/HARDWARE.md)). The family member upstairs is scripted |
-| Relay to relay | Real software: a cut-off relay hands its held messages to the next block's relay, which uploads them (two relays, the Pi and a laptop). Their link is the local network, standing in for radio; radio hardware is not built |
-| The other 68 relays, sensor nodes, vitals sensors | Simulated or scripted. The twin draws the other relays' hops and says so |
+| The twin, the guided story, the power rules | Real, running at the link above |
+| The API | Real, with 138 passing tests, hosted at https://hollow-twin-api.onrender.com and read by the public twin by default. Open the twin with `?api=off` to see the built-in simulation alone; the story's numbers (12 blocks, 8.5 million people) come from it |
+| The family watch on a phone | Real: a web page that sends to the API, with I'm OK, help, I feel sick, the family list, presets and Morse |
+| The relay, watch and sensor code | Real code. Our team was spread across 1,400 miles, so it was tested in simulation: the relay against the real API with a stand-in watch and real network cuts, the ESP32 firmware on a simulated board. It has not yet run on the physical boards ([`docs/HARDWARE.md`](docs/HARDWARE.md)) |
+| Radio links between relays | Simulated. The relay-to-relay handoff is real software over the local network, standing in for radio |
+| The watch and rover hardware | Designed in CAD and simulated, not built |
+| Sensor readings, populations, the failure scenario | Simulated, and tagged as simulated on screen |
 
 ## Run it yourself
 
@@ -91,14 +99,18 @@ cd twin && python3 -m http.server 8080
 cd api && npm run scenario -- networkcut
 ```
 
-Other scenarios: `blackout`, `fairshare`, `water`, `outbreak`, `care`, `surface`. API tests: `cd api && npm test`.
+Other scenarios: `blackout`, `fairshare`, `water`, `outbreak`, `care`, `surface`. Tests: `cd api && npm test`.
 
 ## Also in the prototype
 
-Built while exploring the track, and working, but not part of the claim above: an outbreak simulator that spreads a disease along tunnels, lifts and water lines and lets you quarantine blocks; water and flood layers; a map of sickness reported by residents (the "I feel sick" button on either watch) against the Directorate's number, ranking where the rover should take med kits first, with the data downloadable for researchers with identities removed ([`/research`](https://hollow-twin.vercel.app/research/)); and a surface-safety verdict with a public, read-only [surface broadcast page](https://hollow-twin.vercel.app/broadcast/) that shows every reading against its published limit.
+Working, but beyond the five problems above: an outbreak simulator that spreads a disease along tunnels, lifts and water lines and lets you quarantine blocks; water and flood layers; a map of sickness reported by residents against the Directorate's official count, with the data downloadable for researchers with identities removed ([`/research`](https://hollow-twin.vercel.app/research/)); and a public page that tells everyone whether the surface is safe ([`/broadcast`](https://hollow-twin.vercel.app/broadcast/)).
 
 ## Team
 
-`anudeep-bonagiri`, `SandeepMadhavarapu`, `akshaya-pabbisetty`. Built during the event, Nov 14 to 20, 2026.
+| | |
+| --- | --- |
+| **Anudeep Bonagiri** (`anudeep-bonagiri`) | The 3D twin and its guided story, the scout rover (CAD design and tunnel mission), the Raspberry Pi relay and Arduino watch code, the README, the submission and the video |
+| **Sandeep Madhavarapu** (`SandeepMadhavarapu`) | The API and the message contract: forecasts, fair-share allocation, NEWS2 help ranking, signed messages and the forgery log, 138 tests, the ESP32 sensor node with its simulated-hardware test bench, and the hosted API |
+| **Akshaya Pabbisetty** (`akshaya-pabbisetty`) | The family watch on a phone, the 3D watch running the real watch software, AR try-on and the rover in your room, and the poster art |
 
-How we work together: [`TEAM.md`](TEAM.md). The plan to the deadline: [`docs/PLAN.md`](docs/PLAN.md).
+Built during the event, Nov 14 to 20, 2026. How we worked: [`TEAM.md`](TEAM.md).
